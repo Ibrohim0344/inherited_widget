@@ -28,18 +28,18 @@ class _SimpleCalcWidgetState extends State<SimpleCalcWidget> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30),
-        child: SimpleCalcWidgetProvider(
+        child: ChangeNotifierProvider(
           model: _model,
-          child: Column(
+          child: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const FirstNumberWidget(),
-              const SizedBox(height: 10),
-              const SecondNumberWidget(),
-              const SizedBox(height: 10),
-              const SumButtonWidget(),
-              const SizedBox(height: 10),
-              const ResultWidget(),
+              FirstNumberWidget(),
+              SizedBox(height: 10),
+              SecondNumberWidget(),
+              SizedBox(height: 10),
+              SumButtonWidget(),
+              SizedBox(height: 10),
+              ResultWidget(),
             ],
           ),
         ),
@@ -56,7 +56,8 @@ class FirstNumberWidget extends StatelessWidget {
     return TextField(
       decoration: const InputDecoration(border: OutlineInputBorder()),
       onChanged: (value) =>
-          SimpleCalcWidgetProvider.of(context).firstNumber = value,
+          ChangeNotifierProvider.of<SimpleCalcWidgetModel>(context)
+              ?.firstNumber = value,
     );
   }
 }
@@ -69,7 +70,8 @@ class SecondNumberWidget extends StatelessWidget {
     return TextField(
       decoration: const InputDecoration(border: OutlineInputBorder()),
       onChanged: (value) =>
-          SimpleCalcWidgetProvider.of(context).secondNumber = value,
+          ChangeNotifierProvider.of<SimpleCalcWidgetModel>(context)
+              ?.secondNumber = value,
     );
   }
 }
@@ -80,7 +82,8 @@ class SumButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-        onPressed: () => SimpleCalcWidgetProvider.of(context).sum(),
+        onPressed: () =>
+            ChangeNotifierProvider.of<SimpleCalcWidgetModel>(context)?.sum(),
         child: const Text("count numbers"));
   }
 }
@@ -90,7 +93,9 @@ class ResultWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final value = SimpleCalcWidgetProvider.of(context).sumResult ?? "-1";
+    final value =
+        ChangeNotifierProvider.of<SimpleCalcWidgetModel>(context)?.sumResult ??
+            "-1";
     return Text("Result: $value");
   }
 }
@@ -119,11 +124,11 @@ class SimpleCalcWidgetModel extends ChangeNotifier {
   }
 }
 
-class SimpleCalcWidgetProvider
-    extends InheritedNotifier<SimpleCalcWidgetModel> {
-  final SimpleCalcWidgetModel model;
+class ChangeNotifierProvider<T extends ChangeNotifier>
+    extends InheritedNotifier<T> {
+  final T model;
 
-  const SimpleCalcWidgetProvider({
+  const ChangeNotifierProvider({
     Key? key,
     required Widget child,
     required this.model,
@@ -133,10 +138,13 @@ class SimpleCalcWidgetProvider
           child: child,
         );
 
-  static SimpleCalcWidgetModel of(BuildContext context) {
-    final SimpleCalcWidgetProvider? result =
-        context.dependOnInheritedWidgetOfExactType<SimpleCalcWidgetProvider>();
-    assert(result != null, 'No SimpleCalcWidgetProvider found in context');
-    return result!.model;
+  static T? of<T>(BuildContext context) {
+    final provider =
+        context.dependOnInheritedWidgetOfExactType<ChangeNotifierProvider>();
+    if (provider != null) {
+      return provider.model as T;
+    } else {
+      return null;
+    }
   }
 }
