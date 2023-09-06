@@ -56,7 +56,7 @@ class FirstNumberWidget extends StatelessWidget {
     return TextField(
       decoration: const InputDecoration(border: OutlineInputBorder()),
       onChanged: (value) =>
-          SimpleCalcWidgetProvider.of(context).model.firstNumber = value,
+          SimpleCalcWidgetProvider.of(context).firstNumber = value,
     );
   }
 }
@@ -69,7 +69,7 @@ class SecondNumberWidget extends StatelessWidget {
     return TextField(
       decoration: const InputDecoration(border: OutlineInputBorder()),
       onChanged: (value) =>
-          SimpleCalcWidgetProvider.of(context).model.secondNumber = value,
+          SimpleCalcWidgetProvider.of(context).secondNumber = value,
     );
   }
 }
@@ -80,36 +80,18 @@ class SumButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-        onPressed: () => SimpleCalcWidgetProvider.of(context).model.sum(),
+        onPressed: () => SimpleCalcWidgetProvider.of(context).sum(),
         child: const Text("count numbers"));
   }
 }
 
-class ResultWidget extends StatefulWidget {
+class ResultWidget extends StatelessWidget {
   const ResultWidget({Key? key}) : super(key: key);
 
   @override
-  State<ResultWidget> createState() => _ResultWidgetState();
-}
-
-class _ResultWidgetState extends State<ResultWidget> {
-  String _value = "-1";
-
-  @override
-  void didChangeDependencies() {
-    final model = SimpleCalcWidgetProvider.of(context).model;
-    model.addListener(() {
-      _value = "${model.sumResult}";
-      setState(() {});
-    });
-
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final value = SimpleCalcWidgetProvider.of(context).model.sumResult ?? 0;
-    return Text("Result: $_value");
+    final value = SimpleCalcWidgetProvider.of(context).sumResult ?? "-1";
+    return Text("Result: $value");
   }
 }
 
@@ -137,24 +119,24 @@ class SimpleCalcWidgetModel extends ChangeNotifier {
   }
 }
 
-class SimpleCalcWidgetProvider extends InheritedWidget {
+class SimpleCalcWidgetProvider
+    extends InheritedNotifier<SimpleCalcWidgetModel> {
   final SimpleCalcWidgetModel model;
 
   const SimpleCalcWidgetProvider({
     Key? key,
     required Widget child,
     required this.model,
-  }) : super(key: key, child: child);
+  }) : super(
+          key: key,
+          notifier: model,
+          child: child,
+        );
 
-  static SimpleCalcWidgetProvider of(BuildContext context) {
+  static SimpleCalcWidgetModel of(BuildContext context) {
     final SimpleCalcWidgetProvider? result =
         context.dependOnInheritedWidgetOfExactType<SimpleCalcWidgetProvider>();
     assert(result != null, 'No SimpleCalcWidgetProvider found in context');
-    return result!;
-  }
-
-  @override
-  bool updateShouldNotify(SimpleCalcWidgetProvider oldWidget) {
-    return model != oldWidget.model;
+    return result!.model;
   }
 }
